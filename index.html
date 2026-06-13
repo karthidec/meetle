@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Meetle — Smart meeting points for any group. Fair routing, real traffic, works worldwide." />
+  <title>Meetle — Smart meeting points for any group</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <aside id="sidebar">
+
+    <!-- Brand header -->
+    <div id="sidebar-header">
+      <div id="brand">
+        <div id="brand-logo">M</div>
+        <div>
+          <div id="brand-name">Meetle</div>
+          <div id="brand-tag">Smart meeting points for any group</div>
+        </div>
+      </div>
+      <div id="header-actions">
+        <button id="dark-mode-btn" title="Toggle dark mode">🌙</button>
+        <button id="sidebar-toggle" title="Collapse">‹</button>
+      </div>
+    </div>
+
+    <div id="sidebar-body">
+
+      <!-- Recent searches -->
+      <div id="recent-section" class="hidden">
+        <div class="section-label">🕘 Recent</div>
+        <div id="recent-chips"></div>
+      </div>
+
+      <!-- Saved groups -->
+      <div id="groups-section" class="hidden">
+        <div class="section-label-row">
+          <span class="section-label">👥 Saved groups</span>
+        </div>
+        <div id="group-chips"></div>
+      </div>
+
+      <!-- People -->
+      <section class="card" id="people-section">
+        <div class="card-label-row">
+          <span class="card-label">👥 Who's meeting?</span>
+          <button id="save-group-btn" class="link-btn" title="Save this group">💾 Save group</button>
+        </div>
+        <div id="inputs-container"></div>
+        <button id="add-person-btn" class="ghost-btn">+ Add person <span class="muted">(up to 5)</span></button>
+      </section>
+
+      <!-- Place types + filters -->
+      <section class="card">
+        <div class="card-label">🏷 Meet where?</div>
+        <div id="place-chips">
+          <button class="chip active" data-type="restaurant">🍽 Restaurant</button>
+          <button class="chip active" data-type="cafe">☕ Café</button>
+          <button class="chip" data-type="bar">🍺 Bar</button>
+          <button class="chip" data-type="park">🌳 Park</button>
+          <button class="chip" data-type="gym">🏋 Gym</button>
+          <button class="chip" data-type="shopping_mall">🛍 Mall</button>
+          <button class="chip" data-type="library">📚 Library</button>
+          <button class="chip" data-type="movie_theater">🎬 Cinema</button>
+          <button class="chip" data-type="museum">🏛 Museum</button>
+          <button class="chip" data-type="art_gallery">🎨 Art gallery</button>
+          <button class="chip" data-type="spa">💆 Spa</button>
+          <button class="chip" data-type="night_club">🎵 Night club</button>
+          <button class="chip" data-type="bowling_alley">🎳 Bowling</button>
+          <button class="chip" data-type="amusement_park">🎡 Amusement park</button>
+          <button class="chip" data-type="hotel">🏨 Hotel lobby</button>
+          <button class="chip" data-type="stadium">🏟 Stadium</button>
+        </div>
+
+        <!-- Currently open toggle -->
+        <label class="toggle-row">
+          <input type="checkbox" id="open-now-toggle" />
+          <div>
+            <strong style="display:block;font-size:12.5px">Open now only</strong>
+            <span class="card-hint" style="margin:0">Hide places that are currently closed</span>
+          </div>
+        </label>
+
+        <!-- Price level filter -->
+        <div class="filter-row">
+          <span class="control-label">Budget</span>
+          <div class="btn-row">
+            <button class="sm-btn active" data-price="-1">Any</button>
+            <button class="sm-btn" data-price="1">$</button>
+            <button class="sm-btn" data-price="2">$$</button>
+            <button class="sm-btn" data-price="3">$$$</button>
+            <button class="sm-btn" data-price="4">$$$$</button>
+          </div>
+        </div>
+
+        <!-- Rating filter -->
+        <div class="filter-row">
+          <span class="control-label">Minimum rating</span>
+          <div class="btn-row">
+            <button class="sm-btn active" data-rating="0">Any</button>
+            <button class="sm-btn" data-rating="3">3+ ⭐</button>
+            <button class="sm-btn" data-rating="4">4+ ⭐</button>
+            <button class="sm-btn" data-rating="4.5">4.5+ ⭐</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fairness mode -->
+      <section class="card">
+        <div class="card-label">⚖️ Fairness mode</div>
+        <div class="radio-group">
+          <label class="radio-card">
+            <input type="radio" name="mode" value="minimax" checked />
+            <div>
+              <strong>Fairest</strong>
+              <span>Nobody gets the worst deal — minimize the longest trip</span>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="mode" value="sum" />
+            <div>
+              <strong>Fastest total</strong>
+              <span>Minimize total travel time for the whole group</span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Departure time -->
+      <section class="card">
+        <div class="card-label">🕐 When are you leaving?</div>
+        <p class="card-hint">Traffic shifts the best spot — pick any date and time</p>
+        <input type="datetime-local" id="departure-datetime" />
+
+        <!-- Arrive together mode -->
+        <label class="toggle-row" style="margin-top:4px">
+          <input type="checkbox" id="arrive-together" />
+          <div>
+            <strong style="display:block;font-size:12.5px">Arrive together</strong>
+            <span class="card-hint" style="margin:0">Show each person when they should leave to arrive at the same time</span>
+          </div>
+        </label>
+      </section>
+
+      <!-- Travel zones (collapsible) -->
+      <section class="card">
+        <div class="card-label collapsible-trigger" id="iso-toggle">
+          🎯 Who can reach where? <span class="caret">▾</span>
+        </div>
+        <div id="iso-body" class="hidden">
+          <p class="card-hint">Coloured areas show how far each person can travel. The <strong>green overlap</strong> is where everyone can meet comfortably.</p>
+          <div class="control-group">
+            <span class="control-label">Each person's travel limit</span>
+            <div class="btn-row">
+              <button class="sm-btn iso-btn" data-mins="15">15 min</button>
+              <button class="sm-btn iso-btn active" data-mins="20">20 min</button>
+              <button class="sm-btn iso-btn" data-mins="30">30 min</button>
+              <button class="sm-btn iso-btn" data-mins="45">45 min</button>
+            </div>
+          </div>
+          <label class="toggle-row">
+            <input type="checkbox" id="show-isochrones" checked />
+            Show zones on map
+          </label>
+        </div>
+      </section>
+
+      <!-- Max travel toggle -->
+      <section class="card">
+        <label class="toggle-row">
+          <input type="checkbox" id="use-max-travel" />
+          <div>
+            <strong style="display:block;font-size:13px">Filter by max travel time</strong>
+            <span class="card-hint" style="margin:0">Hide places where anyone travels over</span>
+          </div>
+        </label>
+        <div id="max-travel-row" class="hidden">
+          <input type="range" id="max-travel-slider" min="10" max="90" value="45" step="5" />
+          <span id="max-travel-label">45 min</span>
+        </div>
+      </section>
+
+      <!-- Find button -->
+      <button id="find-btn">
+        <span id="find-btn-text">Find Meeting Point</span>
+      </button>
+
+      <!-- Travel zone legend -->
+      <div id="isochrone-legend" class="card hidden">
+        <div class="card-label">Who can reach where?</div>
+        <div id="legend-items"></div>
+        <div id="overlap-status"></div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-section" class="hidden">
+        <div class="results-header">
+          <span class="card-label">🏆 Top spots</span>
+          <div class="result-actions">
+            <button id="surprise-btn" class="action-btn surprise-btn" title="Let Meetle decide!">🎲 Surprise me</button>
+            <button id="vote-btn" class="action-btn vote-btn" title="Send options to your group">🗳 Vote</button>
+            <button id="whatsapp-btn" class="action-btn whatsapp-btn">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Share
+            </button>
+            <button id="share-btn" class="action-btn">🔗 Link</button>
+          </div>
+        </div>
+        <div id="result-cards"></div>
+      </div>
+
+      <!-- Error -->
+      <div id="error-box" class="hidden"></div>
+
+    </div>
+  </aside>
+
+  <div id="map"></div>
+
+  <!-- Save group modal -->
+  <div id="group-modal" class="hidden">
+    <div id="group-modal-box">
+      <div class="modal-title">💾 Save this group</div>
+      <input id="group-name-input" type="text" placeholder="e.g. Work team, Family, Friends" maxlength="30" />
+      <div class="modal-actions">
+        <button id="group-save-confirm" class="modal-btn primary">Save</button>
+        <button id="group-save-cancel" class="modal-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="config.js"></script>
+  <script src="js/app.js"></script>
+  <!-- Google Maps is loaded dynamically by app.js using the key from config.js or extension settings -->
+</body>
+</html>

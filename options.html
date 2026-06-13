@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Meetle Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f7f9ff; color: #1a1a1a;
+      min-height: 100vh; display: flex; align-items: flex-start; justify-content: center;
+      padding: 48px 16px;
+    }
+    .container { width: 100%; max-width: 520px; }
+
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .brand-logo {
+      width: 40px; height: 40px; background: #34a853; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; color: #fff;
+    }
+    .brand-name { font-size: 22px; font-weight: 800; color: #1a2e6b; }
+    .brand-sub  { font-size: 12px; color: #888; margin-top: 2px; }
+
+    .card {
+      background: #fff; border: 1px solid #e4e8f0; border-radius: 12px;
+      padding: 24px; margin-bottom: 20px;
+    }
+    .card h2  { font-size: 14px; font-weight: 700; color: #1a2e6b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+    .card p   { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+    label     { display: block; font-size: 12.5px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; border: 1.5px solid #e4e8f0; border-radius: 7px;
+      padding: 10px 12px; font-size: 13.5px; color: #1a1a1a;
+      background: #f7f9ff; outline: none; transition: border-color .15s;
+      font-family: monospace;
+    }
+    input:focus { border-color: #1a2e6b; background: #fff; }
+
+    .row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    button {
+      padding: 9px 20px; border-radius: 7px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: none; transition: background .15s;
+    }
+    .btn-save    { background: #1a2e6b; color: #fff; }
+    .btn-save:hover { background: #2a3f8f; }
+    .btn-clear   { background: #fff; color: #888; border: 1.5px solid #e4e8f0; }
+    .btn-clear:hover { border-color: #e53935; color: #e53935; }
+
+    #status {
+      font-size: 12.5px; font-weight: 600; padding: 7px 12px;
+      border-radius: 6px; display: none;
+    }
+    #status.ok  { background: #e6f4ea; color: #1b5e20; display: block; }
+    #status.err { background: #fce8e6; color: #c5221f; display: block; }
+
+    .steps {
+      background: #f0f4ff; border: 1px solid #c5d0e8; border-radius: 8px;
+      padding: 14px 16px; font-size: 12.5px; color: #444; line-height: 2;
+    }
+    .steps strong { color: #1a2e6b; }
+    a { color: #1a2e6b; font-weight: 600; }
+
+    .toggle-visibility {
+      background: none; border: none; color: #888; font-size: 16px;
+      cursor: pointer; padding: 4px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    }
+    .input-wrap { position: relative; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="brand">
+    <div class="brand-logo">M</div>
+    <div>
+      <div class="brand-name">Meetle</div>
+      <div class="brand-sub">Settings</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗝️ Google Maps API Key</h2>
+    <p>Each user needs their own free API key. Google gives every account <strong>$200 free credit/month</strong> — more than enough for personal use.</p>
+
+    <label for="api-key">Your API Key</label>
+    <div class="input-wrap">
+      <input type="password" id="api-key" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" />
+      <button class="toggle-visibility" onclick="toggleVisibility()" title="Show/hide key">👁</button>
+    </div>
+
+    <div class="row">
+      <button class="btn-save" onclick="saveKey()">💾 Save Key</button>
+      <button class="btn-clear" onclick="clearKey()">✕ Remove</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 How to get a free API key</h2>
+    <div class="steps">
+      <strong>Step 1</strong> — Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a><br>
+      <strong>Step 2</strong> — Create a new project (e.g. "Meetle")<br>
+      <strong>Step 3</strong> — Go to <em>APIs & Services → Library</em> and enable:<br>
+      &nbsp;&nbsp;&nbsp;• Maps JavaScript API<br>
+      &nbsp;&nbsp;&nbsp;• Distance Matrix API<br>
+      &nbsp;&nbsp;&nbsp;• Places API<br>
+      <strong>Step 4</strong> — Go to <em>APIs & Services → Credentials</em><br>
+      <strong>Step 5</strong> — Click <em>Create Credentials → API key</em><br>
+      <strong>Step 6</strong> — Copy the key and paste it above
+    </div>
+  </div>
+
+</div>
+
+<script src="options.js"></script>
+</body>
+</html>

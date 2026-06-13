@@ -1,0 +1,5 @@
+# config.js is now safe to commit — it contains no API key
+# Each user enters their own key in the app on first use
+# .env or local-only overrides (if any) go here:
+*.local
+.DS_Store
