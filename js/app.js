@@ -376,6 +376,7 @@ async function findMeetingPoint() {
     renderResults(topN, persons, mode);
     plotMarkers(persons, topN, scored);
     drawRoutes(persons, topN[0]);
+    maybeShowInstallBanner();
     map.panTo(topN[0].location);
     drawIsochrones(persons).catch(() => {});
 
@@ -429,7 +430,7 @@ function renderResults(topN, persons, mode) {
     card.className = `result-card rank-${rank + 1}`;
     card.innerHTML = `
       ${photoUrl
-        ? `<img class="place-photo" src="${photoUrl}" alt="${c.name}" loading="lazy" />`
+        ? `<div class="place-photo-wrap"><img class="place-photo" src="${photoUrl}" alt="${c.name}" loading="lazy" /></div>`
         : `<div class="place-photo-placeholder">${typeIcon}</div>`}
       <div class="result-card-body">
         <div class="result-card-header">
@@ -449,7 +450,8 @@ function renderResults(topN, persons, mode) {
         <div class="result-card-footer">
           <span class="score-badge">${scoreLabel}</span>
           <div class="card-action-row">
-            <button class="mini-btn maps"     onclick="openInMaps(event,'${encodeURIComponent(c.name)}','${c.placeId}')">🗺 Maps</button>
+            <button class="mini-btn maps"     onclick="openInMaps(event,'${encodeURIComponent(c.name)}','${c.placeId}')" title="Open in Google Maps">📍 Open in Maps</button>
+            <button class="mini-btn directions" onclick="getDirectionsToVenue(event,'${c.placeId}','${c.name.replace(/'/g,"\\'")}')" title="Get directions from your location">🧭 Directions</button>
             <button class="mini-btn calendar" onclick="exportCalendar(event,'${c.name.replace(/'/g,"\\'")}')">📅 Calendar</button>
           </div>
         </div>
@@ -666,7 +668,26 @@ async function drawIsochrones(persons) {
 // ════════════════════════════════════════════════════════════════
 function openInMaps(e, name, placeId) {
   e.stopPropagation();
-  window.open(`https://www.google.com/maps/search/?api=1&query=${name}&query_place_id=${placeId}`, '_blank');
+  // Opens venue in Google Maps app on mobile, or Maps website on desktop
+  const url = `https://www.google.com/maps/search/?api=1&query=${name}&query_place_id=${placeId}`;
+  window.open(url, '_blank');
+}
+
+function getDirectionsToVenue(e, placeId, venueName) {
+  e.stopPropagation();
+  // Opens Google Maps with navigation to the venue from user's current location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination_place_id=${placeId}&destination=${encodeURIComponent(venueName)}`;
+      window.open(url, '_blank');
+    }, () => {
+      // Fallback: open venue without origin
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueName)}&query_place_id=${placeId}`, '_blank');
+    });
+  } else {
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueName)}&query_place_id=${placeId}`, '_blank');
+  }
 }
 function openDirections(originEncoded, destEncoded) {
   const origin = decodeURIComponent(originEncoded);
@@ -1027,8 +1048,150 @@ function startWithKey() {
   saveKeyAndReload(key);
 }
 
+// ════════════════════════════════════════════════════════════════
+//  PWA INSTALL BANNER
+// ════════════════════════════════════════════════════════════════
+let _deferredInstallPrompt = null;
+const INSTALL_DISMISSED_KEY = 'meetle_install_dismissed';
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+});
+
+function maybeShowInstallBanner() {
+  // Don't show if: already installed, dismissed before, or no prompt available
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const dismissed    = localStorage.getItem(INSTALL_DISMISSED_KEY);
+  if (isStandalone || dismissed || !_deferredInstallPrompt) return;
+
+  // Show banner after a short delay so it doesn't compete with results
+  setTimeout(() => {
+    let banner = document.getElementById('pwa-install-banner');
+    if (banner) return; // already showing
+    banner = document.createElement('div');
+    banner.id = 'pwa-install-banner';
+    banner.innerHTML = `
+      <div id="pwa-banner-content">
+        <div id="pwa-banner-icon">📲</div>
+        <div id="pwa-banner-text">
+          <strong>Add Meetle to your home screen</strong>
+          <span>One tap access, works like a native app</span>
+        </div>
+        <button id="pwa-install-btn">Install</button>
+        <button id="pwa-dismiss-btn" title="Dismiss">✕</button>
+      </div>
+    `;
+    document.body.appendChild(banner);
+
+    document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+      if (!_deferredInstallPrompt) return;
+      _deferredInstallPrompt.prompt();
+      const { outcome } = await _deferredInstallPrompt.userChoice;
+      _deferredInstallPrompt = null;
+      banner.remove();
+      if (outcome === 'accepted') showToast('Meetle installed! 🎉');
+    });
+
+    document.getElementById('pwa-dismiss-btn').addEventListener('click', () => {
+      localStorage.setItem(INSTALL_DISMISSED_KEY, '1');
+      banner.remove();
+    });
+  }, 2000);
+}
+
 // Kick off
 loadMapsAPI();
+
+// ════════════════════════════════════════════════════════════════
+//  BEST TIME TO MEET
+// ════════════════════════════════════════════════════════════════
+async function findBestTime() {
+  const persons = getPersons();
+  if (persons.length < 2 || persons.some(p => !p.location)) {
+    showToast('Please enter at least 2 locations first.'); return;
+  }
+
+  const btn = document.getElementById('best-time-btn');
+  const resultBox = document.getElementById('best-time-result');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning time slots…';
+  resultBox.classList.add('hidden');
+
+  // Build candidate time slots: next 3 days × 4 slots per day
+  const slots = [];
+  const now = new Date();
+  for (let d = 0; d < 3; d++) {
+    for (const hour of [9, 12, 15, 18]) {
+      const t = new Date(now);
+      t.setDate(t.getDate() + d);
+      t.setHours(hour, 0, 0, 0);
+      if (t > now) slots.push(t);
+    }
+  }
+
+  const service = new google.maps.DistanceMatrixService();
+  const origins = persons.map(p => p.location);
+  const center  = {
+    lat: origins.reduce((s, o) => s + o.lat(), 0) / origins.length,
+    lng: origins.reduce((s, o) => s + o.lng(), 0) / origins.length
+  };
+
+  // Score each slot by total travel time to center
+  const scored = [];
+  for (const slot of slots) {
+    try {
+      const res = await new Promise((resolve, reject) => {
+        service.getDistanceMatrix({
+          origins,
+          destinations: [center],
+          travelMode: google.maps.TravelMode[persons[0].travelMode] || google.maps.TravelMode.DRIVING,
+          drivingOptions: { departureTime: slot, trafficModel: google.maps.TrafficModel.BEST_GUESS }
+        }, (r, s) => s === 'OK' ? resolve(r) : reject(s));
+      });
+      const times = res.rows.map(row => row.elements[0]?.duration_in_traffic?.value || row.elements[0]?.duration?.value || 9999);
+      const total = times.reduce((a, b) => a + b, 0);
+      const max   = Math.max(...times);
+      scored.push({ slot, total, max, times });
+    } catch { /* skip failed slots */ }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⏰ Best Time to Meet';
+
+  if (!scored.length) { showToast('Could not fetch time slot data. Try again.'); return; }
+
+  scored.sort((a, b) => a.total - b.total);
+  const best = scored[0];
+
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmt = t => {
+    const h = t.getHours();
+    return `${days[t.getDay()]} ${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`;
+  };
+
+  const rows = scored.slice(0, 5).map((s, i) => {
+    const totalMins = Math.round(s.total / 60);
+    const maxMins   = Math.round(s.max / 60);
+    const isBest    = i === 0;
+    return `<div class="bt-row ${isBest ? 'bt-best' : ''}">
+      <span class="bt-slot">${isBest ? '🏆 ' : ''}${fmt(s.slot)}</span>
+      <span class="bt-stats">Total ${totalMins}min · Max ${maxMins}min</span>
+    </div>`;
+  }).join('');
+
+  // Auto-set the departure datetime picker to the best slot
+  const iso = best.slot.toISOString().slice(0, 16);
+  const picker = document.getElementById('departure-datetime');
+  if (picker) picker.value = iso;
+
+  resultBox.innerHTML = `
+    <div class="bt-header">📊 Best slots for your group</div>
+    ${rows}
+    <div class="bt-note">✅ Departure set to best slot: <strong>${fmt(best.slot)}</strong></div>
+  `;
+  resultBox.classList.remove('hidden');
+}
 
 // ════════════════════════════════════════════════════════════════
 //  WIRE ALL UI
@@ -1036,6 +1199,7 @@ loadMapsAPI();
 function wireUI() {
   document.getElementById('add-person-btn').addEventListener('click', () => addPerson());
   document.getElementById('find-btn').addEventListener('click', findMeetingPoint);
+  document.getElementById('best-time-btn').addEventListener('click', findBestTime);
 
   // Dark mode
   document.getElementById('dark-mode-btn').addEventListener('click', toggleDarkMode);

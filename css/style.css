@@ -323,6 +323,29 @@ body {
 #find-btn:active  { transform: scale(.98); }
 #find-btn:disabled { background: #aaa; cursor: not-allowed; }
 
+/* Best Time to Meet button */
+#best-time-btn {
+  background: none; border: 1.5px solid var(--brand); border-radius: var(--radius);
+  color: var(--brand); font-size: 13px; font-weight: 600; padding: 10px;
+  width: 100%; cursor: pointer; transition: all var(--ease); margin-top: 8px;
+}
+#best-time-btn:hover   { background: var(--brand-light); }
+#best-time-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+#best-time-result {
+  margin-top: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  overflow: hidden; font-size: 12.5px;
+}
+.bt-header { padding: 8px 12px; font-weight: 700; background: var(--surface-alt); color: var(--brand); }
+.bt-row    { display: flex; justify-content: space-between; align-items: center;
+             padding: 7px 12px; border-top: 1px solid var(--border); gap: 8px; }
+.bt-best   { background: #e6f4ea; }
+body.dark .bt-best { background: #1a3320; }
+.bt-slot   { font-weight: 700; color: var(--text); }
+.bt-stats  { color: var(--muted); font-size: 11.5px; }
+.bt-note   { padding: 7px 12px; background: var(--brand-light); color: var(--brand);
+             font-size: 12px; border-top: 1px solid var(--border); }
+
 .ghost-btn {
   background: none; border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
   color: var(--brand); font-size: 12.5px; font-weight: 600; padding: 7px 12px;
@@ -374,13 +397,24 @@ body {
   100% { transform: scale(1); }
 }
 
+.place-photo-wrap {
+  position: relative; overflow: hidden; border-radius: 10px 10px 0 0;
+}
 .place-photo {
-  width: 100%; height: 100px; object-fit: cover; display: block; background: var(--surface-alt);
+  width: 100%; height: 140px; object-fit: cover; display: block;
+  background: var(--surface-alt); transition: transform .3s ease;
+}
+.result-card:hover .place-photo { transform: scale(1.03); }
+.place-photo-wrap::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.45) 100%);
+  pointer-events: none;
 }
 .place-photo-placeholder {
-  width: 100%; height: 72px;
+  width: 100%; height: 100px;
   background: linear-gradient(135deg, var(--brand-light) 0%, var(--surface-alt) 100%);
-  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  display: flex; align-items: center; justify-content: center; font-size: 36px;
+  border-radius: 10px 10px 0 0;
 }
 
 .result-card-body { padding: 11px 13px; display: flex; flex-direction: column; gap: 7px; }
@@ -436,7 +470,8 @@ body {
 }
 .mini-btn:hover         { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
 .mini-btn.calendar:hover { border-color: var(--green); color: var(--green-dark); background: var(--green-light); }
-.mini-btn.maps:hover    { border-color: #4285f4; color: #1a65d6; background: #e8f0fe; }
+.mini-btn.maps:hover       { border-color: #4285f4; color: #1a65d6; background: #e8f0fe; }
+.mini-btn.directions:hover { border-color: #34a853; color: #1a7a3a; background: #e6f4ea; }
 
 /* ═══════════════════ ISOCHRONE LEGEND ═══════════════════ */
 .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
@@ -480,6 +515,35 @@ body.dark #error-box { background: #2d2200; border-color: #7c6200; color: #ffd54
 .modal-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
 .modal-btn.primary:hover { background: var(--brand-mid); }
 .modal-btn:hover { background: var(--surface-hover); }
+
+/* ═══════════════════ PWA INSTALL BANNER ═══════════════════ */
+#pwa-install-banner {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 9998; width: calc(100% - 32px); max-width: 480px;
+  animation: slideUp .35s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+#pwa-banner-content {
+  display: flex; align-items: center; gap: 10px;
+  background: #1a2e6b; color: #fff;
+  padding: 12px 14px; border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+#pwa-banner-icon { font-size: 26px; flex-shrink: 0; }
+#pwa-banner-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+#pwa-banner-text strong { font-size: 13px; }
+#pwa-banner-text span   { font-size: 11.5px; opacity: .8; }
+#pwa-install-btn {
+  background: #34a853; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+#pwa-install-btn:hover { background: #2a8a43; }
+#pwa-dismiss-btn {
+  background: none; border: none; color: rgba(255,255,255,0.6);
+  font-size: 16px; cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+#pwa-dismiss-btn:hover { color: #fff; }
 
 /* ═══════════════════ TOAST ═══════════════════ */
 #toast {

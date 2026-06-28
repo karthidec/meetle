@@ -6,7 +6,7 @@
 // ⚠️  BEFORE PUBLISHING: replace the URL below with your actual GitHub Pages URL.
 //     Format: https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/
 
-const MEETLE_URL = 'https://YOUR_GITHUB_USERNAME.github.io/google-maps/';
+const MEETLE_URL = 'https://karthidec.github.io/meetle/';
 
 chrome.action.onClicked.addListener(async () => {
   // If Meetle is already open, switch to that tab instead of opening a duplicate

@@ -3,3 +3,4 @@
 # .env or local-only overrides (if any) go here:
 *.local
 .DS_Store
+meetle-extension.zip
